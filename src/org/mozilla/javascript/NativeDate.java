@@ -373,21 +373,15 @@ final class NativeDate extends IdScriptableObject
             return ScriptRuntime.wrapNumber(t);
 
           case Id_toISOString:
-            return realThis.toISOString();
+              if (t == t) {
+                  return js_toISOString(t);
+              }
+              String msg = ScriptRuntime.getMessage0("msg.invalid.date");
+              throw ScriptRuntime.constructError("RangeError", msg);
 
           default: throw new IllegalArgumentException(String.valueOf(id));
         }
 
-    }
-
-    private String toISOString() {
-        if (date == date) {
-            synchronized (isoFormat) {
-                return isoFormat.format(new Date((long) date));
-            }
-        }
-        String msg = ScriptRuntime.getMessage0("msg.invalid.date");
-        throw ScriptRuntime.constructError("RangeError", msg);
     }
 
     /* ECMA helper functions */
@@ -1313,6 +1307,34 @@ final class NativeDate extends IdScriptableObject
         result.append(':');
         append0PaddedUint(result, SecFromTime(date), 2);
         result.append(" GMT");
+        return result.toString();
+    }
+
+    private static String js_toISOString(double t) {
+        StringBuilder result = new StringBuilder(27);
+
+        int year = YearFromTime(t);
+        if (year < 0) {
+            result.append('-');
+            append0PaddedUint(result, -year, 6);
+        } else if (year > 9999) {
+            append0PaddedUint(result, year, 6);
+        } else {
+            append0PaddedUint(result, year, 4);
+        }
+        result.append('-');
+        append0PaddedUint(result, MonthFromTime(t) + 1, 2);
+        result.append('-');
+        append0PaddedUint(result, DateFromTime(t), 2);
+        result.append('T');
+        append0PaddedUint(result, HourFromTime(t), 2);
+        result.append(':');
+        append0PaddedUint(result, MinFromTime(t), 2);
+        result.append(':');
+        append0PaddedUint(result, SecFromTime(t), 2);
+        result.append('.');
+        append0PaddedUint(result, msFromTime(t), 3);
+        result.append('Z');
         return result.toString();
     }
 
