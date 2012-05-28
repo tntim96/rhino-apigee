@@ -1039,10 +1039,6 @@ public class NativeArray extends IdScriptableObject implements List
         return thisObj;
     }
 
-    /**
-     * Non-ECMA methods.
-     */
-
     private static Object js_push(Context cx, Scriptable thisObj,
                                   Object[] args)
     {
