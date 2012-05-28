@@ -131,7 +131,7 @@ public class BaseFunction extends IdScriptableObject implements Function
             attr = prototypePropertyAttributes;
             break;
           case Id_arguments:
-            attr = DONTENUM | PERMANENT;
+            attr = argumentsAttributes;
             break;
           default: throw new IllegalStateException();
         }
@@ -179,7 +179,11 @@ public class BaseFunction extends IdScriptableObject implements Function
                     // This should not be called since "arguments" is PERMANENT
                     Kit.codeBug();
                 }
-                defaultPut("arguments", value);
+                if (defaultHas("arguments")) {
+                    defaultPut("arguments", value);
+                } else if ((argumentsAttributes & READONLY) == 0) {
+                    argumentsObj = value;
+                }
                 return;
             case Id_name:
             case Id_arity:
@@ -195,6 +199,9 @@ public class BaseFunction extends IdScriptableObject implements Function
         switch (id) {
             case Id_prototype:
                 prototypePropertyAttributes = attr;
+                return;
+            case Id_arguments:
+                argumentsAttributes = attr;
                 return;
         }
         super.setInstanceIdAttributes(id, attr);
@@ -475,7 +482,7 @@ public class BaseFunction extends IdScriptableObject implements Function
       // <Function name>.arguments is deprecated, so we use a slow
       // way of getting it that doesn't add to the invocation cost.
       // TODO: add warning, error based on version
-      Object value = defaultGet("arguments");
+      Object value = defaultHas("arguments") ? defaultGet("arguments") : argumentsObj;
       if (value != NOT_FOUND) {
           // Should after changing <Function name>.arguments its
           // activation still be available during Function call?
@@ -591,9 +598,12 @@ public class BaseFunction extends IdScriptableObject implements Function
 // #/string_id_map#
 
     private Object prototypeProperty;
+    private Object argumentsObj = NOT_FOUND;
+
     // For function object instances, attributes are
     //  {configurable:false, enumerable:false};
     // see ECMA 15.3.5.2
     private int prototypePropertyAttributes = PERMANENT|DONTENUM;
+    private int argumentsAttributes = PERMANENT|DONTENUM;
 }
 
