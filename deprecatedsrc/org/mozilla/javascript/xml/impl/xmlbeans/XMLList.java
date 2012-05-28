@@ -1367,7 +1367,7 @@ class XMLList extends XMLObjectImpl implements Function
     {
         if (hasSimpleContent())
         {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
 
             for(int i = 0; i < length(); i++)
             {
@@ -1395,7 +1395,7 @@ class XMLList extends XMLObjectImpl implements Function
      */
     String toXMLString(int indent)
     {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         for(int i = 0; i < length(); i++)
         {
