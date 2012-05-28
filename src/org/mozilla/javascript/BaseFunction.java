@@ -190,6 +190,17 @@ public class BaseFunction extends IdScriptableObject implements Function
     }
 
     @Override
+    protected void setInstanceIdAttributes(int id, int attr)
+    {
+        switch (id) {
+            case Id_prototype:
+                prototypePropertyAttributes = attr;
+                return;
+        }
+        super.setInstanceIdAttributes(id, attr);
+    }
+
+    @Override
     protected void fillConstructorProperties(IdFunctionObject ctor)
     {
         // Fix up bootstrapping problem: getPrototype of the IdFunctionObject
