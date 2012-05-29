@@ -139,7 +139,7 @@ public class NativeRegExp extends IdScriptableObject implements Function
     NativeRegExp(Scriptable scope, RECompiled regexpCompiled)
     {
         this.re = regexpCompiled;
-        this.lastIndex = 0;
+        this.lastIndex = 0d;
         ScriptRuntime.setBuiltinProtoAndParent(this, scope, TopLevel.Builtins.RegExp);
     }
 
@@ -190,7 +190,7 @@ public class NativeRegExp extends IdScriptableObject implements Function
             ? ScriptRuntime.toString(args[1])
             : null;
         this.re = compileRE(cx, s, global, false);
-        this.lastIndex = 0;
+        this.lastIndex = 0d;
         return this;
     }
 
@@ -259,11 +259,14 @@ public class NativeRegExp extends IdScriptableObject implements Function
         } else {
             str = ScriptRuntime.toString(args[0]);
         }
-        double d = ((re.flags & JSREG_GLOB) != 0) ? lastIndex : 0;
+        double d = 0;
+        if ((re.flags & JSREG_GLOB) != 0) {
+            d = ScriptRuntime.toInteger(lastIndex);
+        }
 
         Object rval;
         if (d < 0 || str.length() < d) {
-            lastIndex = 0;
+            lastIndex = 0d;
             rval = null;
         }
         else {
@@ -271,7 +274,7 @@ public class NativeRegExp extends IdScriptableObject implements Function
             rval = executeRegExp(cx, scopeObj, reImpl, str, indexp, matchType);
             if ((re.flags & JSREG_GLOB) != 0) {
                 lastIndex = (rval == null || rval == Undefined.instance)
-                            ? 0 : indexp[0];
+                            ? 0d : (double)indexp[0];
             }
         }
         return rval;
@@ -2595,7 +2598,7 @@ public class NativeRegExp extends IdScriptableObject implements Function
         int attr;
         switch (id) {
           case Id_lastIndex:
-            attr = PERMANENT | DONTENUM;
+            attr = lastIndexAttr;
             break;
           case Id_source:
           case Id_global:
@@ -2627,7 +2630,7 @@ public class NativeRegExp extends IdScriptableObject implements Function
     {
         switch (id) {
           case Id_lastIndex:
-            return ScriptRuntime.wrapNumber(lastIndex);
+            return lastIndex;
           case Id_source:
             return new String(re.source);
           case Id_global:
@@ -2645,7 +2648,7 @@ public class NativeRegExp extends IdScriptableObject implements Function
     {
         switch (id) {
           case Id_lastIndex:
-            lastIndex = ScriptRuntime.toNumber(value);
+            lastIndex = value;
             return;
           case Id_source:
           case Id_global:
@@ -2654,6 +2657,16 @@ public class NativeRegExp extends IdScriptableObject implements Function
             return;
         }
         super.setInstanceIdValue(id, value);
+    }
+
+    @Override
+    protected void setInstanceIdAttributes(int id, int attr) {
+        switch (id) {
+          case Id_lastIndex:
+            lastIndexAttr = attr;
+            return;
+        }
+        super.setInstanceIdAttributes(id, attr);
     }
 
     @Override
@@ -2749,7 +2762,8 @@ public class NativeRegExp extends IdScriptableObject implements Function
 // #/string_id_map#
 
     private RECompiled re;
-    double lastIndex;          /* index after last match, for //g iterator */
+    Object lastIndex = 0d;     /* index after last match, for //g iterator */
+    private int lastIndexAttr = DONTENUM | PERMANENT;
 
 }       // class NativeRegExp
 
