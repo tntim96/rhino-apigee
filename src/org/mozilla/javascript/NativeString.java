@@ -1,8 +1,44 @@
 /* -*- Mode: java; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*-
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Rhino code, released
+ * May 6, 1999.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1997-1999
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Tom Beauvais
+ *   Norris Boyd
+ *   Mike McCabe
+ *   Cameron McCormack
+ *   Travis Ennis
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * the GNU General Public License Version 2 or later (the "GPL"), in which
+ * case the provisions of the GPL are applicable instead of those above. If
+ * you wish to allow use of your version of this file only under the terms of
+ * the GPL and not to allow others to use your version of this file under the
+ * MPL, indicate your decision by deleting the provisions above and replacing
+ * them with the notice and other provisions required by the GPL. If you do
+ * not delete the provisions above, a recipient may use your version of this
+ * file under either the MPL or the GPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 package org.mozilla.javascript;
 
@@ -161,6 +197,8 @@ final class NativeString extends IdScriptableObject
           case Id_toLocaleLowerCase: arity=0; s="toLocaleLowerCase"; break;
           case Id_toLocaleUpperCase: arity=0; s="toLocaleUpperCase"; break;
           case Id_trim:              arity=0; s="trim";              break;
+          case Id_trimLeft:          arity=0; s="trimLeft";          break;
+          case Id_trimRight:         arity=0; s="trimRight";         break;
           default: throw new IllegalArgumentException(String.valueOf(id));
         }
         initPrototypeMethod(STRING_TAG, id, s, arity);
@@ -387,6 +425,33 @@ final class NativeString extends IdScriptableObject
                     while (start < chars.length && ScriptRuntime.isJSWhitespaceOrLineTerminator(chars[start])) {
                       start++;
                     }
+                    int end = chars.length;
+                    while (end > start && ScriptRuntime.isJSWhitespaceOrLineTerminator(chars[end-1])) {
+                      end--;
+                    }
+
+                    return str.substring(start, end);
+                }
+              case Id_trimLeft:
+                {
+                    String str = ScriptRuntime.toString(thisObj);
+                    char[] chars = str.toCharArray();
+
+                    int start = 0;
+                    while (start < chars.length && ScriptRuntime.isJSWhitespaceOrLineTerminator(chars[start])) {
+                      start++;
+                    }
+                    int end = chars.length;
+
+                    return str.substring(start, end);
+                }
+              case Id_trimRight:
+                {
+                    String str = ScriptRuntime.toString(thisObj);
+                    char[] chars = str.toCharArray();
+
+                    int start = 0;
+
                     int end = chars.length;
                     while (end > start && ScriptRuntime.isJSWhitespaceOrLineTerminator(chars[end-1])) {
                       end--;
@@ -678,10 +743,12 @@ final class NativeString extends IdScriptableObject
                 if (c=='r') { X="toString";id=Id_toString; }
                 else if (c=='s') { X="fontsize";id=Id_fontsize; }
                 else if (c=='u') { X="toSource";id=Id_toSource; }
+                else if (c=='L') { X="trimLeft";id=Id_trimLeft; }
                 break L;
             case 9: c=s.charAt(0);
                 if (c=='f') { X="fontcolor";id=Id_fontcolor; }
                 else if (c=='s') { X="substring";id=Id_substring; }
+                else if (c=='t') { X="trimRight";id=Id_trimRight; }
                 break L;
             case 10: X="charCodeAt";id=Id_charCodeAt; break L;
             case 11: switch (s.charAt(2)) {
@@ -744,7 +811,9 @@ final class NativeString extends IdScriptableObject
         Id_toLocaleLowerCase         = 35,
         Id_toLocaleUpperCase         = 36,
         Id_trim                      = 37,
-        MAX_PROTOTYPE_ID             = Id_trim;
+        Id_trimLeft                  = 38,
+        Id_trimRight                 = 39,
+        MAX_PROTOTYPE_ID             = Id_trimRight;
 
 // #/string_id_map#
 
