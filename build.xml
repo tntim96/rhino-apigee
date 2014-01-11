@@ -91,6 +91,7 @@
          manifest="src/manifest"
          compress="${jar-compression}"
      />
+    <copy tofile="${maven-target.dir}/${maven-jar-name}" file="${jarfile}"/>
   </target>
 
   <target name="console" depends="jar">
