@@ -338,6 +338,11 @@
     </java>
   </target>
 
+  <target name="deploy-jars" depends="jar,javadoc">
+      <jar destfile="${dist.dir}/js-sources.jar" basedir="src"/>
+      <jar destfile="${dist.dir}/js-javadoc.jar" basedir="${dist.dir}/javadoc"/>
+  </target>
+
   <target name="help" depends="properties">
 <echo>The following targets are available with this build file:
 
@@ -368,6 +373,10 @@
 
  source-zip  create ${dist.source-only-zip} with all Rhino
              source files necessary to recreate ${dist.file}
+
+ deploy-jars create ${dist}/rhino-source.jar and
+             ${dist}/rhino-javadoc.jar
+             for deployment to Maven Central
 </echo>
   </target>
 
