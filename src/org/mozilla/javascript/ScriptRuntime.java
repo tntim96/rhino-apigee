@@ -175,6 +175,7 @@ public class ScriptRuntime {
 
         // must precede NativeGlobal since it's needed therein
         NativeError.init(scope, sealed);
+        NativeCallSite.init(scope, sealed);
         NativeGlobal.init(cx, scope, sealed);
 
         NativeArray.init(scope, sealed);

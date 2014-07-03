@@ -89,6 +89,14 @@ final class NativeError extends IdScriptableObject
     }
 
     @Override
+    protected void fillConstructorProperties(IdFunctionObject ctor)
+    {
+        addIdFunctionProperty(ctor, ERROR_TAG,
+                              ConstructorId_captureStackTrace, "captureStackTrace", 2);
+        super.fillConstructorProperties(ctor);
+    }
+
+    @Override
     public Object execIdCall(IdFunctionObject f, Context cx, Scriptable scope,
                              Scriptable thisObj, Object[] args)
     {
@@ -97,6 +105,9 @@ final class NativeError extends IdScriptableObject
         }
         int id = f.methodId();
         switch (id) {
+          case ConstructorId_captureStackTrace:
+            return js_captureStackTrace(cx, scope, args);
+
           case Id_constructor:
             return make(cx, scope, f, args);
 
@@ -141,7 +152,11 @@ final class NativeError extends IdScriptableObject
         }
 
         NativeError er = (NativeError) obj;
-        Object value = er.stackProvider == null ? NOT_FOUND : er.stackProvider.getScriptStackTrace();
+        if (er.stackProvider == null) {
+            return NOT_FOUND;
+        }
+
+        Object value = er.stackProvider.getPreparedScriptStackTrace(Context.getCurrentContext(), this, this);
         // We store the stack as local property both to cache it
         // and to make the property writable
         setStack(obj, value);
@@ -231,6 +246,30 @@ final class NativeError extends IdScriptableObject
         return sb.toString();
     }
 
+    /**
+     * This is a V8 extension that causes a native Error object to have a stack trace inserted at the point
+     * at which it's called. It takes two arguments -- the first is an Error object and the second
+     * is an optional function name for trimming the stack trace. We will only implement the first.
+     */
+    private static Object js_captureStackTrace(Context cx, Scriptable scope, Object[] args)
+    {
+        if (args.length < 1) {
+            throw ScriptRuntime.typeError("first argument must be an Object");
+        }
+        Scriptable obj;
+        try {
+            obj = (Scriptable)args[0];
+        } catch (ClassCastException cce) {
+            throw ScriptRuntime.typeError("err must be an Object");
+        }
+
+        EvaluatorException exc = new EvaluatorException(null);
+        exc.fillInStackTrace();
+        obj.put("stack", obj, exc.getPreparedScriptStackTrace(cx, scope, obj));
+
+        return Undefined.instance;
+    }
+
     private static String getString(Scriptable obj, String id)
     {
         Object value = ScriptableObject.getProperty(obj, id);
@@ -260,6 +299,7 @@ final class NativeError extends IdScriptableObject
     }
 
     private static final int
+        ConstructorId_captureStackTrace = -1,
         Id_constructor    = 1,
         Id_toString       = 2,
         Id_toSource       = 3,

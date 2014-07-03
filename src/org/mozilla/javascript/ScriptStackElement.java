@@ -19,11 +19,18 @@ public final class ScriptStackElement implements Serializable {
     public final String fileName;
     public final String functionName;
     public final int lineNumber;
+    public final int columnNumber;
 
-    public ScriptStackElement(String fileName, String functionName, int lineNumber) {
+    public ScriptStackElement(String fileName, String functionName, int lineNumber, int columnNumber) {
         this.fileName = fileName;
         this.functionName = functionName;
         this.lineNumber = lineNumber;
+        this.columnNumber = columnNumber;
+    }
+
+    public ScriptStackElement(String fileName, String functionName, int lineNumber)
+    {
+        this(fileName, functionName, lineNumber, -1);
     }
 
     public String toString() {
@@ -62,4 +69,35 @@ public final class ScriptStackElement implements Serializable {
         }
     }
 
+    /**
+     * Render stack element in V8 style:
+     * <code>    at functionName (fileName:lineNumber:columnNumber)</code>
+     * or:
+     * <code>    at fileName:lineNumber:columnNumber</code>
+     * @param sb the StringBuilder to append to
+     */
+    public void renderV8Style(StringBuilder sb) {
+        sb.append("    at ");
+
+        if (functionName == null) {
+            // Anonymous functions in V8 don't have names in the stack trace
+            appendV8Location(sb);
+
+        } else {
+            sb.append(functionName).append(" (");
+            appendV8Location(sb);
+            sb.append(')');
+        }
+    }
+
+    private void appendV8Location(StringBuilder sb)
+    {
+        sb.append(fileName);
+        if (lineNumber > -1) {
+            sb.append(':').append(lineNumber);
+        }
+        if (columnNumber > -1) {
+            sb.append(':').append(columnNumber);
+        }
+    }
 }
