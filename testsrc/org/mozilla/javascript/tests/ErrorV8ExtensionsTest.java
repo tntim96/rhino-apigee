@@ -83,7 +83,7 @@ public class ErrorV8ExtensionsTest {
             "Error.prepareStackTrace = function(err, st) { return st; };" + LS +
             "var obj = {}; Error.captureStackTrace(obj); var st = obj.stack[0];" + LS +
             "if (st.getFileName() !== 'myScript.js') { throw 'Wrong file name ' + st.getFileName(); }" + LS +
-            "if (st.getLineNumber() !== 2) { throw 'Wrong line number ' + st.getLineNumber(); }}";
+            "if (st.getLineNumber() !== 2) { throw 'Wrong line number ' + st.getLineNumber(); }";
         runIt(script);
     }
 
