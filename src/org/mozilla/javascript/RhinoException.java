@@ -204,13 +204,7 @@ public abstract class RhinoException extends RuntimeException
         String lineSeparator = SecurityUtilities.getSystemProperty("line.separator");
         ScriptStackElement[] stack = getScriptStack();
         for (ScriptStackElement elem : stack) {
-            if (stackStyle == StackStyle.MOZILLA) {
-                elem.renderMozillaStyle(buffer);
-            } else if (stackStyle == StackStyle.V8) {
-                elem.renderV8Style(buffer);
-            } else {
-                elem.renderJavaStyle(buffer);
-            }
+            elem.render(buffer);
             buffer.append(lineSeparator);
         }
         return buffer.toString();

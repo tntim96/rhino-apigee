@@ -139,7 +139,7 @@ public class NativeCallSite extends IdScriptableObject
         case Id_getFunctionName:
             return getFunctionName(thisObj);
         case Id_getMethodName:
-            return getFunctionName(thisObj);
+            return getNull();
         case Id_getFileName:
             return getFileName(thisObj);
         case Id_getLineNumber:
@@ -180,12 +180,20 @@ public class NativeCallSite extends IdScriptableObject
         if (obj == null) {
             return NOT_FOUND;
         }
-        return obj.toString();
+        NativeCallSite cs = (NativeCallSite)obj;
+        StringBuilder sb = new StringBuilder();
+        cs.element.renderLocation(sb);
+        return sb.toString();
     }
 
     private Object getUndefined()
     {
         return Undefined.instance;
+    }
+
+    private Object getNull()
+    {
+        return null;
     }
 
     private Object getFalse()
@@ -202,7 +210,7 @@ public class NativeCallSite extends IdScriptableObject
             return NOT_FOUND;
         }
         NativeCallSite cs = (NativeCallSite)obj;
-        return (cs.element == null ? Undefined.instance : cs.element.functionName);
+        return (cs.element == null ? null : cs.element.functionName);
     }
 
     private Object getFileName(Scriptable obj)
@@ -214,7 +222,7 @@ public class NativeCallSite extends IdScriptableObject
             return NOT_FOUND;
         }
         NativeCallSite cs = (NativeCallSite)obj;
-        return (cs.element == null ? Undefined.instance : cs.element.fileName);
+        return (cs.element == null ? null : cs.element.fileName);
     }
 
     private Object getLineNumber(Scriptable obj)

@@ -40,6 +40,38 @@ public final class ScriptStackElement implements Serializable {
     }
 
     /**
+     * Render the stack trace to the specified StringBuilder using the appropriate style,
+     * as defined in RhinoException.
+     * @since 1.7R5
+     */
+    public void render(StringBuilder buffer)
+    {
+        if (RhinoException.getStackStyle() == StackStyle.MOZILLA) {
+            renderMozillaStyle(buffer);
+        } else if (RhinoException.getStackStyle() == StackStyle.V8) {
+            renderV8Style(buffer, true);
+        } else {
+            renderJavaStyle(buffer);
+        }
+    }
+
+    /**
+     * Render the stack trace to the specified StringBuilder using the appropriate style,
+     * as defined in RhinoException. Render only the location, with no "at" stuff...
+     * @since 1.7R5
+     */
+    public void renderLocation(StringBuilder buffer)
+    {
+        if (RhinoException.getStackStyle() == StackStyle.MOZILLA) {
+            renderMozillaStyle(buffer);
+        } else if (RhinoException.getStackStyle() == StackStyle.V8) {
+            renderV8Style(buffer, false);
+        } else {
+            renderJavaStyle(buffer);
+        }
+    }
+
+    /**
      * Render stack element in Java-inspired style:
      * <code>    at fileName:lineNumber (functionName)</code>
      * @param sb the StringBuilder to append to
@@ -76,10 +108,12 @@ public final class ScriptStackElement implements Serializable {
      * <code>    at fileName:lineNumber:columnNumber</code>
      * @param sb the StringBuilder to append to
      */
-    public void renderV8Style(StringBuilder sb) {
-        sb.append("    at ");
+    private void renderV8Style(StringBuilder sb, boolean stackStyle) {
+        if (stackStyle) {
+            sb.append("    at ");
+        }
 
-        if (functionName == null) {
+        if ((functionName == null) || "anonymous".equals(functionName)) {
             // Anonymous functions in V8 don't have names in the stack trace
             appendV8Location(sb);
 
