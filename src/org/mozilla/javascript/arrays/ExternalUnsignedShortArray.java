@@ -6,39 +6,43 @@
 
 package org.mozilla.javascript.arrays;
 
+import java.nio.ShortBuffer;
+
 /**
  * An implementation of the external array using an array of "short"s. From a JavaScript perspective,
  * only "number" types may be set in the array. Valid values are between 0 and 65536, inclusive. Negative values
  * will be converted to unsigned "number" objects when accessed from JavaScript, whereas in Java, values
  * must be treated as "short" instances.
+ * position() of the specified array will be used for the first object in the array, and "remaining()" will
+ * be used to determine the length.
  */
 
-public class ExternalUnsignedShortArray
+public final class ExternalUnsignedShortArray
     extends ExternalArray
 {
     private static final long serialVersionUID = -5341065722456287177L;
 
-    private final short[] array;
+    private final ShortBuffer array;
 
-    public ExternalUnsignedShortArray(short[] array) {
+    public ExternalUnsignedShortArray(ShortBuffer array) {
         this.array = array;
     }
 
-    public short[] getArray() {
+    public ShortBuffer getArray() {
         return array;
     }
 
     protected Object getElement(int index) {
-        short val = array[index];
+        short val = array.get(array.position() + index);
         return val & 0xffff;
     }
 
     protected void putElement(int index, Object value) {
         int val = ((Number)value).intValue();
-        array[index] = (short)(val & 0xffff);
+        array.put(array.position() + index, (short)(val & 0xffff));
     }
 
     public int getLength() {
-        return array.length;
+        return array.remaining();
     }
 }

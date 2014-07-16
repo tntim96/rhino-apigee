@@ -6,36 +6,40 @@
 
 package org.mozilla.javascript.arrays;
 
+import java.nio.DoubleBuffer;
+
 /**
  * An implementation of the external array using an array of "double"s. Only "number" types may be set in
  * the array.
+ * position() of the specified array will be used for the first object in the array, and "remaining()" will
+ * be used to determine the length.
  */
 
-public class ExternalDoubleArray
+public final class ExternalDoubleArray
     extends ExternalArray
 {
     private static final long serialVersionUID = -773914084068347275L;
 
-    private final double[] array;
+    private final DoubleBuffer array;
 
-    public ExternalDoubleArray(double[] array) {
+    public ExternalDoubleArray(DoubleBuffer array) {
         this.array = array;
     }
 
-    public double[] getArray() {
+    public DoubleBuffer getArray() {
         return array;
     }
 
     protected Object getElement(int index) {
-        return array[index];
+        return array.get(array.position() + index);
     }
 
     protected void putElement(int index, Object value) {
         double val = ((Number)value).doubleValue();
-        array[index] = val;
+        array.put(array.position() + index, val);
     }
 
     public int getLength() {
-        return array.length;
+        return array.remaining();
     }
 }

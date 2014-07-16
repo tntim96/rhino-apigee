@@ -6,37 +6,41 @@
 
 package org.mozilla.javascript.arrays;
 
+import java.nio.IntBuffer;
+
 /**
  * An implementation of the external array using an array of "int"s. From a JavaScript perspective,
  * only "number" types may be set in the array. Valid values are the same as an "int" type in Java,
  * namely -2^31 to (2^31)-1, inclusive.
+ * position() of the specified array will be used for the first object in the array, and "remaining()" will
+ * be used to determine the length.
  */
 
-public class ExternalIntArray
+public final class ExternalIntArray
     extends ExternalArray
 {
     private static final long serialVersionUID = 2944694724181197664L;
 
-    private final int[] array;
+    private final IntBuffer array;
 
-    public ExternalIntArray(int[] array) {
+    public ExternalIntArray(IntBuffer array) {
         this.array = array;
     }
 
-    public int[] getArray() {
+    public IntBuffer getArray() {
         return array;
     }
 
     protected Object getElement(int index) {
-        return array[index];
+        return array.get(array.position() + index);
     }
 
     protected void putElement(int index, Object value) {
         int val = ((Number)value).intValue();
-        array[index] = val;
+        array.put(array.position() + index, val);
     }
 
     public int getLength() {
-        return array.length;
+        return array.remaining();
     }
 }

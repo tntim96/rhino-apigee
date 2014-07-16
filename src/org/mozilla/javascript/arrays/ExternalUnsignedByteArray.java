@@ -6,38 +6,42 @@
 
 package org.mozilla.javascript.arrays;
 
+import java.nio.ByteBuffer;
+
 /**
  * An implementation of the external array using an array of bytes. From a JavaScript perspective,
  * only "number" types may be set in the array. Valid values are between 0 and 255, inclusive. Negative values
  * will be converted to unsigned "number" objects when accessed from JavaScript, whereas in Java, values
  * must be treated as "byte" instances.
+ * position() of the specified array will be used for the first object in the array, and "remaining()" will
+ * be used to determine the length.
  */
 
-public class ExternalUnsignedByteArray
+public final class ExternalUnsignedByteArray
     extends ExternalArray
 {
     private static final long serialVersionUID = -6094133552784945651L;
 
-    private final byte[] array;
+    private final ByteBuffer array;
 
-    public ExternalUnsignedByteArray(byte[] array) {
+    public ExternalUnsignedByteArray(ByteBuffer array) {
         this.array = array;
     }
 
-    public byte[] getArray() {
+    public ByteBuffer getArray() {
         return array;
     }
 
     protected Object getElement(int index) {
-        return array[index] & 0xff;
+        return array.get(array.position() + index) & 0xff;
     }
 
     protected void putElement(int index, Object value) {
         int val = ((Number)value).intValue();
-        array[index] = (byte)(val & 0xff);
+       array.put(array.position() + index, (byte)(val & 0xff));
     }
 
     public int getLength() {
-        return array.length;
+        return array.remaining();
     }
 }

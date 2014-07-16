@@ -6,36 +6,40 @@
 
 package org.mozilla.javascript.arrays;
 
+import java.nio.FloatBuffer;
+
 /**
  * An implementation of the external array using an array of "float"s. Only "number" types may be set in
  * the array.
+ * position() of the specified array will be used for the first object in the array, and "remaining()" will
+ * be used to determine the length.
  */
 
-public class ExternalFloatArray
+public final class ExternalFloatArray
     extends ExternalArray
 {
     private static final long serialVersionUID = 3786769656861013570L;
 
-    private final float[] array;
+    private final FloatBuffer array;
 
-    public ExternalFloatArray(float[] array) {
+    public ExternalFloatArray(FloatBuffer array) {
         this.array = array;
     }
 
-    public float[] getArray() {
+    public FloatBuffer getArray() {
         return array;
     }
 
     protected Object getElement(int index) {
-        return array[index];
+        return array.get(array.position() + index);
     }
 
     protected void putElement(int index, Object value) {
         float val = ((Number)value).floatValue();
-        array[index] = val;
+        array.put(array.position() + index, val);
     }
 
     public int getLength() {
-        return array.length;
+        return array.remaining();
     }
 }

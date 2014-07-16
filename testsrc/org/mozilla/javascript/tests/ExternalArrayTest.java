@@ -16,6 +16,12 @@ import org.mozilla.javascript.arrays.ExternalUnsignedByteArray;
 import org.mozilla.javascript.arrays.ExternalUnsignedIntArray;
 import org.mozilla.javascript.arrays.ExternalUnsignedShortArray;
 
+import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
+
 import static org.junit.Assert.*;
 
 public class ExternalArrayTest
@@ -28,7 +34,7 @@ public class ExternalArrayTest
         byte[] ba = new byte[2];
         ba[0] = 1;
         ba[1] = 2;
-        ExternalArray array = new ExternalByteArray(ba);
+        ExternalArray array = new ExternalByteArray(ByteBuffer.wrap(ba));
         runWithArray(array,
           "assertEquals(theArray[0], 1);" + LS +
           "assertEquals(theArray[1], 2);");
@@ -37,7 +43,7 @@ public class ExternalArrayTest
     @Test
     public void testZeroLength()
     {
-        ExternalArray array = new ExternalByteArray(new byte[0]);
+        ExternalArray array = new ExternalByteArray(ByteBuffer.allocate(0));
         runWithArray(array,
           "if (theArray[0]) { throw 'Unexpected value out of range'; }");
     }
@@ -46,7 +52,7 @@ public class ExternalArrayTest
     public void testGetRange()
     {
         // Should get undefined when going out of range
-        ExternalArray array = new ExternalByteArray(new byte[2]);
+        ExternalArray array = new ExternalByteArray(ByteBuffer.allocate(2));
         runWithArray(array,
           "if (theArray[2]) { throw 'Unexpected value out of range'; }");
     }
@@ -55,7 +61,7 @@ public class ExternalArrayTest
     public void testPutRange()
     {
         // Should be able to put outside the range, using "non-external" array storage.
-        ExternalArray array = new ExternalByteArray(new byte[2]);
+        ExternalArray array = new ExternalByteArray(ByteBuffer.allocate(2));
         runWithArray(array,
           "theArray[2] = 3; assertEquals(theArray[2], 3);");
     }
@@ -63,7 +69,7 @@ public class ExternalArrayTest
     @Test
     public void testCountProps()
     {
-        ExternalArray array = new ExternalByteArray(new byte[2]);
+        ExternalArray array = new ExternalByteArray(ByteBuffer.allocate(2));
         runWithArray(array,
           "var i; var c = 0; for (i in theArray) { c++; }" + LS +
           "assertEquals(c, 2);");
@@ -76,7 +82,7 @@ public class ExternalArrayTest
         byte[] ba = new byte[2];
         ba[0] = 11;
         ba[1] = 13;
-        ExternalArray array = new ExternalByteArray(ba);
+        ExternalArray array = new ExternalByteArray(ByteBuffer.wrap(ba));
 
         runWithArray(array,
           "theArray.foo = 'foo';" + LS +
@@ -94,7 +100,7 @@ public class ExternalArrayTest
         byte[] ba = new byte[2];
         ba[0] = 11;
         ba[1] = 13;
-        ExternalArray array = new ExternalByteArray(ba);
+        ExternalArray array = new ExternalByteArray(ByteBuffer.wrap(ba));
 
         runWithArray(array,
           "theArray.foo = 'foo';" + LS +
@@ -121,7 +127,7 @@ public class ExternalArrayTest
         ba[1] = (byte)-1;
         ba[2] = (byte)127;
         ba[3] = (byte)-128;
-        ExternalArray array = new ExternalByteArray(ba);
+        ExternalArray array = new ExternalByteArray(ByteBuffer.wrap(ba));
 
         runWithArray(array,
           "assertEquals(theArray[2], 127);" + LS +
@@ -135,10 +141,76 @@ public class ExternalArrayTest
     }
 
     @Test
+    public void testDirectByte()
+    {
+        ByteBuffer bb = ByteBuffer.allocateDirect(4);
+        bb.put(0, (byte)1);
+        bb.put(1, (byte)-1);
+        bb.put(2, (byte)127);
+        bb.put(3, (byte)-128);
+        ExternalArray array = new ExternalByteArray(bb);
+
+        runWithArray(array,
+          "assertEquals(theArray[2], 127);" + LS +
+          "assertEquals(theArray[3], -128);" + LS +
+          "theArray[0] = 11; assertEquals(theArray[0], 11);" + LS +
+          "theArray[1] = -11; assertEquals(theArray[1], -11);"
+        );
+
+        assertEquals(11, bb.get(0));
+        assertEquals(-11, bb.get(1));
+    }
+
+    @Test
+    public void testByteSlice()
+    {
+        byte[] ba = new byte[8];
+        ba[4] = (byte)1;
+        ba[5] = (byte)-1;
+        ba[6] = (byte)127;
+        ba[7] = (byte)-128;
+        ExternalArray array = new ExternalByteArray(ByteBuffer.wrap(ba, 4, 4));
+
+        runWithArray(array,
+          "assertEquals(theArray[2], 127);" + LS +
+          "assertEquals(theArray[3], -128);" + LS +
+          "theArray[0] = 11; assertEquals(theArray[0], 11);" + LS +
+          "theArray[1] = -11; assertEquals(theArray[1], -11);"
+        );
+
+        assertEquals(11, ba[4]);
+        assertEquals(-11, ba[5]);
+    }
+
+    @Test
+    public void testByteSlice2()
+    {
+        byte[] ba = new byte[8];
+        ba[4] = (byte)1;
+        ba[5] = (byte)-1;
+        ba[6] = (byte)127;
+        ba[7] = (byte)-128;
+        ByteBuffer bb = ByteBuffer.wrap(ba);
+        bb.position(4);
+        ByteBuffer slice = bb.slice();
+        ExternalArray array = new ExternalByteArray(slice);
+
+        runWithArray(array,
+          "assertEquals(theArray[2], 127);" + LS +
+          "assertEquals(theArray[3], -128);" + LS +
+          "theArray[0] = 11; assertEquals(theArray[0], 11);" + LS +
+          "theArray[1] = -11; assertEquals(theArray[1], -11);"
+        );
+
+        assertEquals(11, ba[4]);
+        assertEquals(-11, ba[5]);
+    }
+
+    @Test
     public void testUnsignedByte()
     {
         byte[] ba = new byte[4];
-        ExternalArray array = new ExternalUnsignedByteArray(ba);
+        ExternalArray array = new ExternalUnsignedByteArray(ByteBuffer.wrap(ba));
 
         runWithArray(array,
           "theArray[0] = 11; assertEquals(theArray[0], 11);" + LS +
@@ -151,7 +223,7 @@ public class ExternalArrayTest
     public void testClampedByte()
     {
         byte[] ba = new byte[5];
-        ExternalArray array = new ExternalClampedByteArray(ba);
+        ExternalArray array = new ExternalClampedByteArray(ByteBuffer.wrap(ba));
 
         runWithArray(array,
           "theArray[0] = 11; assertEquals(theArray[0], 11);" + LS +
@@ -170,7 +242,7 @@ public class ExternalArrayTest
         a[1] = -1;
         a[2] = 32767;
         a[3] = -32768;
-        ExternalArray array = new ExternalShortArray(a);
+        ExternalArray array = new ExternalShortArray(ShortBuffer.wrap(a));
 
         runWithArray(array,
           "assertEquals(theArray[2], 32767);" + LS +
@@ -187,7 +259,7 @@ public class ExternalArrayTest
     public void testUnsignedShort()
     {
         short[] a = new short[4];
-        ExternalArray array = new ExternalUnsignedShortArray(a);
+        ExternalArray array = new ExternalUnsignedShortArray(ShortBuffer.wrap(a));
 
         runWithArray(array,
           "theArray[0] = 11; assertEquals(theArray[0], 11);" + LS +
@@ -204,7 +276,7 @@ public class ExternalArrayTest
         a[1] = -1;
         a[2] = 2147483647;
         a[3] = -2147483648;
-        ExternalArray array = new ExternalIntArray(a);
+        ExternalArray array = new ExternalIntArray(IntBuffer.wrap(a));
 
         runWithArray(array,
           "assertEquals(theArray[2], 2147483647);" + LS +
@@ -221,7 +293,7 @@ public class ExternalArrayTest
     public void testUnsignedInt()
     {
         int[] a = new int[4];
-        ExternalArray array = new ExternalUnsignedIntArray(a);
+        ExternalArray array = new ExternalUnsignedIntArray(IntBuffer.wrap(a));
 
         runWithArray(array,
           "theArray[0] = 11; assertEquals(theArray[0], 11);" + LS +
@@ -239,7 +311,7 @@ public class ExternalArrayTest
         a[1] = 3.14f;
         a[2] = 3.4028234663852886E38f;
         a[3] = -1.401298464324817E-45f;
-        ExternalArray array = new ExternalFloatArray(a);
+        ExternalArray array = new ExternalFloatArray(FloatBuffer.wrap(a));
 
         runWithArray(array,
           "assertEquals(theArray[0], 1.0);" + LS +
@@ -257,11 +329,11 @@ public class ExternalArrayTest
     public void testDouble()
     {
         double[] a = new double[6];
-        a[0] = 1.0f;
-        a[1] = 3.14f;
-        a[2] = 3.4028234663852886E38f;
-        a[3] = -1.401298464324817E-45f;
-        ExternalArray array = new ExternalDoubleArray(a);
+        a[0] = 1.0;
+        a[1] = 3.14;
+        a[2] = 3.4028234663852886E38;
+        a[3] = -1.401298464324817E-45;
+        ExternalArray array = new ExternalDoubleArray(DoubleBuffer.wrap(a));
 
         runWithArray(array,
           "assertEquals(theArray[0], 1.0);" + LS +
