@@ -131,7 +131,7 @@ final class NativeError extends IdScriptableObject
                 defineProperty("stack", this,
                         NativeError.class.getMethod("getStack", Scriptable.class),
                         NativeError.class.getMethod("setStack", Scriptable.class, Object.class),
-                        0);
+                        DONTENUM);
             } catch (NoSuchMethodException nsm) {
                 // should not happen
                 throw new RuntimeException(nsm);
@@ -175,9 +175,9 @@ final class NativeError extends IdScriptableObject
             NativeError er = (NativeError) obj;
             if (er.stackProvider != null) {
                 er.stackProvider = null;
-                er.delete("stack");
             }
-            er.put("stack", this, value);
+            er.delete("stack");
+            er.put("stack", er, value);
         }
     }
 
@@ -265,7 +265,10 @@ final class NativeError extends IdScriptableObject
 
         EvaluatorException exc = new EvaluatorException(null);
         exc.fillInStackTrace();
-        obj.put("stack", obj, exc.getPreparedScriptStackTrace(cx, scope, obj));
+
+        Object stack = exc.getPreparedScriptStackTrace(cx, scope, obj);
+        obj.delete("stack");
+        obj.put("stack", obj, stack);
 
         return Undefined.instance;
     }
