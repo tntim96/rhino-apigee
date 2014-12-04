@@ -55,6 +55,10 @@ public class MozillaSuiteTest {
     public MozillaSuiteTest(File jsFile, int optimizationLevel) {
         this.jsFile = jsFile;
         this.optimizationLevel = optimizationLevel;
+
+        if (System.getProperty("os.name").startsWith("Mac")) {
+            System.setProperty("os.name", "NotMac");
+        }
     }
 
     public static File getTestDir() throws IOException {
