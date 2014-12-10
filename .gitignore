@@ -7,3 +7,10 @@ lib/
 
 # artifacts
 *.zip
+
+*.iml
+.idea/
+out/
+target/
+
+
