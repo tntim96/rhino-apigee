@@ -27,6 +27,8 @@
 
 /* Rhino: This test was copied from the V8 test suite, and is used as part of the Node.js build. */
 
+load("testsrc/assert.js");
+
 // Flags: --allow-natives-syntax --expose-gc
 // This is a regression test for overlapping key and value registers.
 function f(a) {

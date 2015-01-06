@@ -29,6 +29,8 @@
 
 // ArrayBuffer
 
+load("testsrc/assert.js");
+
 function TestByteLength(param, expectedByteLength) {
   var ab = new ArrayBuffer(param);
   assertSame(expectedByteLength, ab.byteLength);
